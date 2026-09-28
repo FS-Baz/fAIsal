@@ -13,7 +13,7 @@ class AIController extends Controller
         $response = (new MyAssistant)
             ->prompt($request->input('prompt'),
             provider: 'faisal',
-            model: 'llama3.2');
+            model: config('ai.providers.faisal.model'));
 
         return response()->json(['response' => $response]);
     }
