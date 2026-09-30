@@ -56,6 +56,10 @@ return [
             'driver' => 'ollama',
             'url' => env('FAISAL_AI_URL'),
             'model' => env('FAISAL_AI_MODEL', 'llama3.2'),
+            'options' => [
+                'timeout' => 300,         // وقت الانتظار الكلي (5 دقائق)
+                'connect_timeout' => 30,  // وقت انتهاء محاولة الاتصال الأولى
+            ],
         ],
         'anthropic' => [
             'driver' => 'anthropic',
@@ -137,6 +141,7 @@ return [
             'key' => env('OPENAI_API_KEY'),
             'url' => env('OPENAI_URL', 'https://api.openai.com/v1'),
             'store' => env('OPENAI_STORE', true),
+            'model' => env('OPENAI_API_MODEL'),
         ],
 
         'openai-compatible' => [

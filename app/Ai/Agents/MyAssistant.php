@@ -2,16 +2,20 @@
 
 namespace App\Ai\Agents;
 
+use Laravel\Ai\Attributes\MaxTokens;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\Conversational;
+use Laravel\Ai\Contracts\HasProviderOptions;
 use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Contracts\Tool;
+use Laravel\Ai\Enums\Lab;
 use Laravel\Ai\Messages\Message;
 use Laravel\Ai\Promptable;
 use Laravel\Ai\Providers\Tools\ProviderTool;
 use Stringable;
 
-class MyAssistant implements Agent, Conversational, HasTools
+#[MaxTokens(80)]
+class MyAssistant implements Agent, Conversational, HasProviderOptions, HasTools
 {
     use Promptable;
 
@@ -20,7 +24,7 @@ class MyAssistant implements Agent, Conversational, HasTools
      */
     public function instructions(): Stringable|string
     {
-        return 'You are a helpful assistant.';
+        return file_get_contents(base_path('app/Ai/prompts/Faisal.md'));
     }
 
     /**
@@ -30,8 +34,22 @@ class MyAssistant implements Agent, Conversational, HasTools
      */
     public function messages(): iterable
     {
-        
-        return [];
+        return auth()->user()->messages()->latest('id')->limit(10)->get()->reverse()->values()->map(function ($message) {
+            return new Message(
+                role: $message->role,
+                content: $message->content
+            );
+        })->all();
+    }
+
+    /**
+     * Disable Ollama's thinking mode for faster replies.
+     *
+     * @return array<string, mixed>
+     */
+    public function providerOptions(Lab|string $provider): array
+    {
+        return ['think' => false];
     }
 
     /**
