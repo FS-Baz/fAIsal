@@ -49,7 +49,7 @@ class MyAssistant implements Agent, Conversational, HasProviderOptions, HasTools
      */
     public function providerOptions(Lab|string $provider): array
     {
-        return ['think' => false];
+        return [];
     }
 
     /**
