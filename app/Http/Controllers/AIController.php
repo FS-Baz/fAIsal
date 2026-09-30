@@ -14,7 +14,9 @@ class AIController extends Controller
 {
     public function show(): Response
     {
-        return Inertia::render('Ai');
+        return Inertia::render('Ai', [
+            'messages' => request()->user()->messages()->orderBy('id')->get(['id', 'role', 'content']),
+        ]);
     }
 
     public function ask(Request $request): Response

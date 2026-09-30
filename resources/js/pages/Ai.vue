@@ -1,20 +1,26 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { nextTick, onMounted, ref } from 'vue';
 import { Loader2, Send, Sparkles } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { ai } from '@/routes';
 import { respond } from '@/routes/ai';
 
-const props = defineProps<{
-    prompt?: string;
-    response?: string;
-}>();
+type ChatMessage = { id?: number; role: string; content: string };
 
-const prompt = ref(props.prompt ?? '');
-const response = ref(props.response ?? '');
+const props = defineProps<{ messages?: ChatMessage[] }>();
+
+const prompt = ref('');
+const messages = ref<ChatMessage[]>([...(props.messages ?? [])]);
 const processing = ref(false);
 const error = ref('');
+const scroller = ref<HTMLElement | null>(null);
+
+function scrollToBottom() {
+    nextTick(() => scroller.value?.scrollTo({ top: scroller.value.scrollHeight }));
+}
+
+onMounted(scrollToBottom);
 
 function csrfToken(): string {
     return decodeURIComponent(
@@ -25,9 +31,12 @@ function csrfToken(): string {
 async function submit() {
     if (!prompt.value.trim() || processing.value) return;
 
+    const text = prompt.value;
     processing.value = true;
     error.value = '';
-    response.value = '';
+    messages.value.push({ role: 'user', content: text });
+    prompt.value = '';
+    scrollToBottom();
 
     try {
         const res = await fetch(respond().url, {
@@ -37,16 +46,17 @@ async function submit() {
                 Accept: 'application/json',
                 'X-XSRF-TOKEN': csrfToken(),
             },
-            body: JSON.stringify({ prompt: prompt.value }),
+            body: JSON.stringify({ prompt: text }),
         });
         if (!res.ok) throw new Error(`Request failed (${res.status})`);
 
-        response.value = (await res.json()).response;
+        messages.value.push({ role: 'assistant', content: (await res.json()).response });
     } catch (e) {
         error.value =
             e instanceof Error ? e.message : 'Something went wrong';
     } finally {
         processing.value = false;
+        scrollToBottom();
     }
 }
 
@@ -84,54 +94,39 @@ defineOptions({
             </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto px-6 py-6">
-            <div class="mx-auto w-full max-w-3xl">
+        <div ref="scroller" class="flex-1 overflow-y-auto px-6 py-6">
+            <div class="mx-auto flex w-full max-w-3xl flex-col gap-4">
                 <div
-                    v-if="!response && !processing"
+                    v-if="!messages.length && !processing"
                     class="flex h-full min-h-[300px] flex-col items-center justify-center gap-3 text-center text-muted-foreground"
                 >
-                    <div
-                        class="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted"
-                    >
+                    <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
                         <Sparkles class="h-6 w-6" />
                     </div>
-
-                    <p class="text-sm">
-                        Ask anything to get started.
-                    </p>
+                    <p class="text-sm">Ask anything to get started.</p>
                 </div>
 
                 <div
-                    v-else-if="processing && !response"
-                    class="flex items-center gap-3 rounded-2xl border bg-muted/40 p-5 text-sm text-muted-foreground"
+                    v-for="(message, index) in messages"
+                    :key="message.id ?? `new-${index}`"
+                    class="flex"
+                    :class="message.role === 'user' ? 'justify-end' : 'justify-start'"
                 >
-                    <Loader2 class="h-4 w-4 animate-spin" />
-
-                    Thinking...
+                    <div
+                        class="max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-relaxed"
+                        :class="message.role === 'user' ? 'bg-primary text-primary-foreground' : 'border bg-card shadow-sm'"
+                    >
+                        {{ message.content }}
+                    </div>
                 </div>
 
-                <Transition
-                    v-else
-                    enter-active-class="transition duration-200 ease-out"
-                    enter-from-class="opacity-0 translate-y-2"
-                    enter-to-class="opacity-100 translate-y-0"
+                <div
+                    v-if="processing"
+                    class="flex items-center gap-3 rounded-2xl border bg-muted/40 p-4 text-sm text-muted-foreground"
                 >
-                    <div class="rounded-2xl border bg-card p-5 shadow-sm">
-                        <div
-                            class="mb-3 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground"
-                        >
-                            <Sparkles class="h-3.5 w-3.5" />
-
-                            Response
-                        </div>
-
-                        <div
-                            class="whitespace-pre-wrap text-sm leading-relaxed"
-                        >
-                            {{ response }}
-                        </div>
-                    </div>
-                </Transition>
+                    <Loader2 class="h-4 w-4 animate-spin" />
+                    Thinking...
+                </div>
             </div>
         </div>
 
