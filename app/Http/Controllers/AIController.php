@@ -55,11 +55,11 @@ class AIController extends Controller
 
         $validated = $request->validate([
             'prompt' => ['required', 'string'],
-            'provider' => ['required', 'string'],
+            'provider' => ['sometimes', 'string'],
         ]);
 
         $prompt = $validated['prompt'];
-        $provider = $validated['provider'];
+        $provider = $validated['provider'] ?? 'faisal';
         Message::create([
             'content' => $prompt,
             'role' => 'user',

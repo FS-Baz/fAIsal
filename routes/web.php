@@ -9,7 +9,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
     Route::get('ai', [AIController::class, 'show'])->name('ai');
     Route::post('ai', [AIController::class, 'ask'])->name('ai.ask');
-    Route::post('ai/stream', [AIController::class, 'stream'])->name('ai.stream');
+    Route::post('ai/respond', [AIController::class, 'example'])->name('ai.respond');
 });
 
 require __DIR__.'/settings.php';

@@ -4,7 +4,7 @@ import { ref } from 'vue';
 import { Loader2, Send, Sparkles } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
 import { ai } from '@/routes';
-import { stream } from '@/routes/ai';
+import { respond } from '@/routes/ai';
 
 const props = defineProps<{
     prompt?: string;
@@ -30,81 +30,18 @@ async function submit() {
     response.value = '';
 
     try {
-        const res = await fetch(stream().url, {
+        const res = await fetch(respond().url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Accept: 'text/event-stream',
+                Accept: 'application/json',
                 'X-XSRF-TOKEN': csrfToken(),
             },
-            body: JSON.stringify({
-                prompt: prompt.value,
-            }),
+            body: JSON.stringify({ prompt: prompt.value }),
         });
+        if (!res.ok) throw new Error(`Request failed (${res.status})`);
 
-        if (!res.ok || !res.body) {
-            throw new Error(`Request failed (${res.status})`);
-        }
-
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-
-        let buffer = '';
-
-        while (true) {
-            const { done, value } = await reader.read();
-
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-
-            const events = buffer.split(/\r?\n\r?\n/);
-            buffer = events.pop() ?? '';
-
-            for (const eventBlock of events) {
-                const dataLines = eventBlock
-                    .split(/\r?\n/)
-                    .filter((line) => line.startsWith('data: '))
-                    .map((line) => line.slice(6));
-
-                if (!dataLines.length) continue;
-
-                const data = dataLines.join('\n');
-
-                if (data === '[DONE]') continue;
-
-                try {
-                    const event = JSON.parse(data);
-
-                    if (event.type === 'text_delta') {
-                        response.value += event.delta;
-                    }
-                } catch {
-                }
-            }
-        }
-
-        if (buffer.trim()) {
-            const dataLines = buffer
-                .split(/\r?\n/)
-                .filter((line) => line.startsWith('data: '))
-                .map((line) => line.slice(6));
-
-            if (dataLines.length) {
-                const data = dataLines.join('\n');
-
-                if (data !== '[DONE]') {
-                    try {
-                        const event = JSON.parse(data);
-
-                        if (event.type === 'text_delta') {
-                            response.value += event.delta;
-                        }
-                    } catch {
-                    }
-                }
-            }
-        }
+        response.value = (await res.json()).response;
     } catch (e) {
         error.value =
             e instanceof Error ? e.message : 'Something went wrong';
