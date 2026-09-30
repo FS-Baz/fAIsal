@@ -56,6 +56,7 @@ return [
             'driver' => 'ollama',
             'url' => env('FAISAL_AI_URL'),
             'model' => env('FAISAL_AI_MODEL', 'llama3.2'),
+            'disable_thinking' => env('FAISAL_AI_DISABLE_THINKING', false),
             'options' => [
                 'timeout' => 300,         // وقت الانتظار الكلي (5 دقائق)
                 'connect_timeout' => 30,  // وقت انتهاء محاولة الاتصال الأولى

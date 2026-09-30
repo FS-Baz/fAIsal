@@ -14,7 +14,7 @@ use Laravel\Ai\Promptable;
 use Laravel\Ai\Providers\Tools\ProviderTool;
 use Stringable;
 
-#[MaxTokens(80)]
+#[MaxTokens(150)]
 class MyAssistant implements Agent, Conversational, HasProviderOptions, HasTools
 {
     use Promptable;
@@ -43,13 +43,13 @@ class MyAssistant implements Agent, Conversational, HasProviderOptions, HasTools
     }
 
     /**
-     * Disable Ollama's thinking mode for faster replies.
+     * Disable Ollama's thinking mode when enabled by config (unsupported models reject the option).
      *
      * @return array<string, mixed>
      */
     public function providerOptions(Lab|string $provider): array
     {
-        return [];
+        return config('ai.providers.faisal.disable_thinking') ? ['think' => false] : [];
     }
 
     /**
