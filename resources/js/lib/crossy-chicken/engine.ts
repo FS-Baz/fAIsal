@@ -11,7 +11,7 @@ export function startCrossyChicken(root, config = {}) {
     const CFG = Object.assign(
         {
             decideUrl: "/api/decision",
-            timeoutMs: 8000,
+            timeoutMs: 30000,
             retryDelayMs: 60,
             doubleMoveMs: 100,
             carBaseMs: 420,
