@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\Projects;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Http\Requests\Projects\DecideMoveRequest;
+use App\Http\Requests\DecideMoveRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -15,7 +14,7 @@ class CrossyChickenController extends Controller
 {
     public function show(): Response
     {
-        return Inertia::render('projects/CrossyChicken');
+        return Inertia::render('CrossyChicken');
     }
 
     /**

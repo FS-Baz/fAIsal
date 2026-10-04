@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head } from "@inertiajs/vue3";
 import { onBeforeUnmount, onMounted, ref } from "vue";
-import { decide, show } from "@/routes/projects/crossy-chicken";
+import { decide, show } from "@/routes/crossy-chicken";
 import { startCrossyChicken } from "@/lib/crossy-chicken/engine";
 
 defineOptions({
@@ -31,7 +31,9 @@ onBeforeUnmount(() => stopGame?.());
                 <div id="splash" class="splash">
                     <div class="splash-card">
                         <div id="splash-emoji" class="splash-emoji">🐥</div>
-                        <h2 id="splash-title" class="splash-title">CROSSY CHICKEN</h2>
+                        <h2 id="splash-title" class="splash-title">
+                            CROSSY CHICKEN
+                        </h2>
                         <p id="splash-sub" class="splash-sub">
                             Cross the road.
                         </p>

@@ -15,7 +15,7 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { ai, dashboard } from "@/routes";
-import { show as crossyChickenShow } from "@/routes/projects/crossy-chicken";
+import { show as crossyChickenShow } from "@/routes/crossy-chicken";
 import type { NavItem } from "@/types";
 
 const mainNavItems: NavItem[] = [
