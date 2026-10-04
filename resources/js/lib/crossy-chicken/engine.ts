@@ -637,7 +637,7 @@ Pick the highest-value move. Reply with the action name only.`;
                 emoji: "🛑",
                 title: "KAI FAILED",
                 sub: String(err.message || err).slice(0, 220),
-                scoreLine: "Is the Kai service running? Then Play Again.",
+                scoreLine: "Is the JEV API reachable? Then Play Again.",
                 button: "Try Again",
                 variant: "lose",
             });

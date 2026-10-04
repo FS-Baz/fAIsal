@@ -18,24 +18,34 @@ class CrossyChickenController extends Controller
     }
 
     /**
-     * Forward the board state to the Kai decision model and return its answer.
+     * Forward the board state to the hosted JEV decision API and return its answer.
      */
     public function decide(DecideMoveRequest $request): JsonResponse
     {
-        try {
-            $response = Http::timeout(config('services.kai.timeout'))
-                ->acceptJson()
-                ->post(rtrim(config('services.kai.url'), '/').'/decide', $request->validated());
-        } catch (Throwable $e) {
-            Log::error('Kai unreachable', ['error' => $e->getMessage()]);
+        $url = config('services.jev.url');
+        $key = config('services.jev.key');
 
-            return response()->json(['error' => 'Kai unreachable'], 502);
+        if (blank($url) || blank($key)) {
+            Log::error('JEV is not configured: set JEV_API_URL and JEV_API_KEY');
+
+            return response()->json(['error' => 'JEV is not configured'], 503);
+        }
+
+        try {
+            $response = Http::withToken($key)
+                ->timeout(config('services.jev.timeout'))
+                ->acceptJson()
+                ->post(rtrim($url, '/').'/decide', $request->validated());
+        } catch (Throwable $e) {
+            Log::error('JEV unreachable', ['error' => $e->getMessage()]);
+
+            return response()->json(['error' => 'JEV unreachable'], 502);
         }
 
         if (! $response->successful()) {
-            Log::error('Kai error', ['status' => $response->status(), 'body' => substr($response->body(), 0, 500)]);
+            Log::error('JEV error', ['status' => $response->status(), 'body' => substr($response->body(), 0, 500)]);
 
-            return response()->json(['error' => 'Kai error', 'status' => $response->status()], 502);
+            return response()->json(['error' => 'JEV error', 'status' => $response->status()], 502);
         }
 
         return response()->json($response->json());

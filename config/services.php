@@ -35,9 +35,10 @@ return [
         ],
     ],
 
-    'kai' => [
-        'url' => env('KAI_API_URL', 'http://127.0.0.1:8001'),
-        'timeout' => (int) env('KAI_API_TIMEOUT', 30),
+    'jev' => [
+        'url' => env('JEV_API_URL'),
+        'key' => env('JEV_API_KEY'),
+        'timeout' => (int) env('JEV_API_TIMEOUT', 30),
     ],
 
 ];
