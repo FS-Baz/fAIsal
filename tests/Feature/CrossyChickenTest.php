@@ -5,7 +5,8 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
-    config()->set('services.jev.url', 'http://jev.test');
+    config()->set('services.jev.url', 'http://jev.test/v1/systemone');
+    config()->set('services.jev.model', 'jev-latest');
     config()->set('services.jev.key', 'secret-key');
     $this->payload = ['state' => 'frog at 10,4', 'questions' => ['move' => ['type' => 'choice']]];
 });
@@ -22,19 +23,20 @@ test('authenticated users can open the crossy chicken page', function () {
 });
 
 test('decide forwards the board to jev and returns its answer', function () {
-    Http::fake(['jev.test/decide' => Http::response(['move' => ['choice' => 'UP']])]);
+    Http::fake(['jev.test/v1/systemone' => Http::response(['move' => ['choice' => 'UP']])]);
 
     $this->actingAs(User::factory()->create())
         ->postJson(route('crossy-chicken.decide'), $this->payload)
         ->assertOk()
         ->assertJsonPath('move.choice', 'UP');
 
-    Http::assertSent(fn ($request) => $request->url() === 'http://jev.test/decide'
+    Http::assertSent(fn ($request) => $request->url() === 'http://jev.test/v1/systemone'
+        && $request['model'] === 'jev-latest'
         && $request['state'] === 'frog at 10,4');
 });
 
 test('decide sends the key as a bearer token', function () {
-    Http::fake(['jev.test/decide' => Http::response(['move' => ['choice' => 'UP']])]);
+    Http::fake(['jev.test/v1/systemone' => Http::response(['move' => ['choice' => 'UP']])]);
 
     $this->actingAs(User::factory()->create())
         ->postJson(route('crossy-chicken.decide'), $this->payload)
@@ -61,7 +63,7 @@ test('decide validates its input', function () {
 });
 
 test('decide returns 502 when jev errors', function () {
-    Http::fake(['jev.test/decide' => Http::response('boom', 500)]);
+    Http::fake(['jev.test/v1/systemone' => Http::response('boom', 500)]);
 
     $this->actingAs(User::factory()->create())
         ->postJson(route('crossy-chicken.decide'), $this->payload)

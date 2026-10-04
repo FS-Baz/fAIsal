@@ -18,15 +18,14 @@ class CrossyChickenController extends Controller
     }
 
     /**
-     * Forward the board state to the hosted JEV decision API and return its answer.
+     * Forward the board state to the hosted JEV API (SystemOne) and return its answer.
      */
     public function decide(DecideMoveRequest $request): JsonResponse
     {
-        $url = config('services.jev.url');
         $key = config('services.jev.key');
 
-        if (blank($url) || blank($key)) {
-            Log::error('JEV is not configured: set JEV_API_URL and JEV_API_KEY');
+        if (blank($key)) {
+            Log::error('JEV is not configured: set JEV_API_KEY');
 
             return response()->json(['error' => 'JEV is not configured'], 503);
         }
@@ -35,7 +34,10 @@ class CrossyChickenController extends Controller
             $response = Http::withToken($key)
                 ->timeout(config('services.jev.timeout'))
                 ->acceptJson()
-                ->post(rtrim($url, '/').'/decide', $request->validated());
+                ->post(config('services.jev.url'), [
+                    'model' => config('services.jev.model'),
+                    ...$request->validated(),
+                ]);
         } catch (Throwable $e) {
             Log::error('JEV unreachable', ['error' => $e->getMessage()]);
 

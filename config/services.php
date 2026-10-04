@@ -36,8 +36,9 @@ return [
     ],
 
     'jev' => [
-        'url' => env('JEV_API_URL'),
+        'url' => env('JEV_API_URL', 'https://api.typesafe.ai/v1/systemone'),
         'key' => env('JEV_API_KEY'),
+        'model' => env('JEV_API_MODEL', 'jev-latest'),
         'timeout' => (int) env('JEV_API_TIMEOUT', 30),
     ],
 
