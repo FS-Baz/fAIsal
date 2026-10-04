@@ -1,5 +1,5 @@
 // @ts-nocheck
-/* Crossy Chicken engine — Kai decides every move. Ported from the standalone project. */
+/* Crossy Chicken engine — AI decides every move. Ported from the standalone project. */
 
 function csrfToken() {
     return decodeURIComponent(
@@ -94,14 +94,14 @@ export function startCrossyChicken(root, config = {}) {
 
     function loadBest() {
         try {
-            return Number(localStorage.getItem("kai-best")) || 0;
+            return Number(localStorage.getItem("crossy-chicken-best")) || 0;
         } catch {
             return 0;
         }
     }
     function saveBest(v) {
         try {
-            localStorage.setItem("kai-best", String(v));
+            localStorage.setItem("crossy-chicken-best", String(v));
         } catch {}
     }
 
@@ -442,7 +442,7 @@ Pick the highest-value move. Reply with the action name only.`;
             deathMemory = {
                 row: frog.row,
                 column: frog.column,
-                move: name.replace("KAI ", "").trim(),
+                move: name.replace("AI ", "").trim(),
             };
             finish(false);
             return false;
@@ -497,9 +497,9 @@ Pick the highest-value move. Reply with the action name only.`;
         justMoved = false;
     }
 
-    /* ---------------- Kai ---------------- */
+    /* ---------------- AI ---------------- */
 
-    async function askKai(pool) {
+    async function askAi(pool) {
         const criteria = {};
         for (const c of pool) {
             const name = c.sequence.join("_");
@@ -551,20 +551,20 @@ Pick the highest-value move. Reply with the action name only.`;
             });
         } catch (e) {
             clearTimeout(t);
-            throw new Error(`[KAI] fetch failed: ${e.message}`);
+            throw new Error(`[AI] fetch failed: ${e.message}`);
         }
         clearTimeout(t);
 
         const raw = await res.text();
         if (!res.ok)
-            throw new Error(`[KAI] HTTP ${res.status} — ${raw.slice(0, 200)}`);
-        if (!raw.trim()) throw new Error("[KAI] empty body");
+            throw new Error(`[AI] HTTP ${res.status} — ${raw.slice(0, 200)}`);
+        if (!raw.trim()) throw new Error("[AI] empty body");
 
         let data;
         try {
             data = JSON.parse(raw);
         } catch {
-            throw new Error(`[KAI] bad JSON: ${raw.slice(0, 200)}`);
+            throw new Error(`[AI] bad JSON: ${raw.slice(0, 200)}`);
         }
 
         const rawChoice =
@@ -582,28 +582,28 @@ Pick the highest-value move. Reply with the action name only.`;
         const valid = pool.map((c) => c.sequence.join("_"));
         if (!valid.includes(clean)) {
             throw new Error(
-                `[KAI] "${rawChoice}" → "${clean}" not in [${valid.join(", ")}]`,
+                `[AI] "${rawChoice}" → "${clean}" not in [${valid.join(", ")}]`,
             );
         }
 
         return clean;
     }
 
-    async function kaiMove() {
+    async function aiMove() {
         if (state !== "playing") return;
-        action.textContent = "🧠 KAI";
+        action.textContent = "🧠 AI is thinking…";
 
         const safePool = getSafePool();
 
         if (!safePool.length) {
             action.textContent = "⏳ HOLD";
-            aiTimer = setTimeout(kaiMove, CFG.retryDelayMs);
+            aiTimer = setTimeout(aiMove, CFG.retryDelayMs);
             return;
         }
 
         /*  WAIT stays in the pool ONLY when no non-WAIT move is safe.
         If any forward or sideways move exists, WAIT is stripped so
-        Kai can't stall. */
+        AI can't stall. */
         const nonWait = safePool.filter((c) => c.sequence[0] !== "WAIT");
         const poolToSend = nonWait.length ? nonWait : safePool;
 
@@ -625,17 +625,17 @@ Pick the highest-value move. Reply with the action name only.`;
 
         let decision;
         try {
-            decision = await askKai(poolToSend);
+            decision = await askAi(poolToSend);
         } catch (err) {
             console.error(err);
             state = "over";
             clearTimeout(carTimer);
             clearTimeout(aiTimer);
-            action.textContent = "❌ KAI FAILED";
+            action.textContent = "❌ AI FAILED";
             draw();
             showSplash({
                 emoji: "🛑",
-                title: "KAI FAILED",
+                title: "AI FAILED",
                 sub: String(err.message || err).slice(0, 220),
                 scoreLine: "Is the JEV API reachable? Then Play Again.",
                 button: "Try Again",
@@ -646,10 +646,10 @@ Pick the highest-value move. Reply with the action name only.`;
 
         if (state !== "playing") return;
 
-        // If Kai picked WAIT but a non-WAIT option was available, override.
+        // If the AI picked WAIT but a non-WAIT option was available, override.
         if (decision === "WAIT" && nonWait.length) {
             const forced = nonWait[0].sequence.join("_");
-            console.warn(`[KAI] chose WAIT — overriding to ${forced}`);
+            console.warn(`[AI] chose WAIT — overriding to ${forced}`);
             decision = forced;
         }
 
@@ -657,11 +657,11 @@ Pick the highest-value move. Reply with the action name only.`;
         const recheck = getSafePool().map((c) => c.sequence.join("_"));
         if (!recheck.includes(decision)) {
             action.textContent = "⏳ RECHECK";
-            aiTimer = setTimeout(kaiMove, CFG.retryDelayMs);
+            aiTimer = setTimeout(aiMove, CFG.retryDelayMs);
             return;
         }
 
-        console.log("[KAI] →", decision);
+        console.log("[AI] →", decision);
         action.textContent = `🤖 ${decision}`;
 
         const sequence = decision.split("_");
@@ -670,16 +670,16 @@ Pick the highest-value move. Reply with the action name only.`;
             const move = sequence[i];
 
             if (move === "UP") {
-                if (!moveFrog(-1, 0, "KAI UP")) return;
+                if (!moveFrog(-1, 0, "AI UP")) return;
             }
             if (move === "LEFT") {
-                if (!moveFrog(0, -1, "KAI LEFT")) return;
+                if (!moveFrog(0, -1, "AI LEFT")) return;
             }
             if (move === "RIGHT") {
-                if (!moveFrog(0, 1, "KAI RIGHT")) return;
+                if (!moveFrog(0, 1, "AI RIGHT")) return;
             }
             if (move === "WAIT") {
-                action.textContent = "KAI WAIT";
+                action.textContent = "AI WAIT";
             }
 
             if (state !== "playing") return;
@@ -689,7 +689,7 @@ Pick the highest-value move. Reply with the action name only.`;
         }
 
         if (state !== "playing") return;
-        aiTimer = setTimeout(kaiMove, CFG.retryDelayMs);
+        aiTimer = setTimeout(aiMove, CFG.retryDelayMs);
     }
 
     /* ---------------- lifecycle ---------------- */
@@ -716,7 +716,7 @@ Pick the highest-value move. Reply with the action name only.`;
         draw();
 
         startCarLoop();
-        kaiMove();
+        aiMove();
     }
 
     /* ---------------- input ---------------- */
@@ -802,7 +802,7 @@ Pick the highest-value move. Reply with the action name only.`;
     showSplash({
         emoji: "🐥",
         title: "Cross the Road 🐥",
-        sub: "Kai decides every move.",
+        sub: "AI decides every move.",
         scoreLine: "",
         button: "Play",
         variant: "start",
