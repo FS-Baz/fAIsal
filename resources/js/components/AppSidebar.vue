@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, Bot, FolderGit2, LayoutGrid } from '@lucide/vue';
-import AppLogo from '@/components/AppLogo.vue';
-import NavFooter from '@/components/NavFooter.vue';
-import NavMain from '@/components/NavMain.vue';
-import NavUser from '@/components/NavUser.vue';
+import { Link } from "@inertiajs/vue3";
+import { BookOpen, Bot, FolderGit2, Gamepad2, LayoutGrid } from "@lucide/vue";
+import AppLogo from "@/components/AppLogo.vue";
+import NavFooter from "@/components/NavFooter.vue";
+import NavMain from "@/components/NavMain.vue";
+import NavUser from "@/components/NavUser.vue";
 import {
     Sidebar,
     SidebarContent,
@@ -13,32 +13,38 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import { ai, dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+} from "@/components/ui/sidebar";
+import { ai, dashboard } from "@/routes";
+import { show as crossyChickenShow } from "@/routes/projects/crossy-chicken";
+import type { NavItem } from "@/types";
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
+        title: "Dashboard",
         href: dashboard(),
         icon: LayoutGrid,
     },
     {
-        title: 'AI',
+        title: "AI",
         href: ai(),
         icon: Bot,
+    },
+    {
+        title: "Crossy Chicken",
+        href: crossyChickenShow(),
+        icon: Gamepad2,
     },
 ];
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
+        title: "Repository",
+        href: "https://github.com/laravel/vue-starter-kit",
         icon: FolderGit2,
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
+        title: "Documentation",
+        href: "https://laravel.com/docs/starter-kits#vue",
         icon: BookOpen,
     },
 ];

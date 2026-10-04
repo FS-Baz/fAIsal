@@ -42,3 +42,7 @@ yarn-error.log
 /boost.json
 /opencode.json
 /opencode.jsonc
+
+/inference/venv
+/inference/.hf-cache
+/inference/__pycache__

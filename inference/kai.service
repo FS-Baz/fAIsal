@@ -1,0 +1,15 @@
+[Unit]
+Description=Kai decision model API
+After=network.target
+
+[Service]
+User=deploy
+WorkingDirectory=/var/www/faisal/inference
+Environment=HF_HOME=/var/www/faisal/inference/.hf-cache
+Environment=HF_HUB_OFFLINE=1
+ExecStart=/var/www/faisal/inference/venv/bin/python server.py
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
